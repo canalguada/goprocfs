@@ -29,10 +29,11 @@ type StatusUpdater func(chanStatus chan Status, wg sync.WaitGroup)
 // DbusObject
 type DbusObject struct {
 	Resources map[string]*Resource
-	Routines map[string]StatusUpdater
-	Channel chan Status							`dbus:"-"`
-	names map[string]string					`dbus:"-"`
-	ordered []string								`dbus:"-"`
+	Routines map[string]StatusUpdater	`dbus:"-"`
+	Channel chan Status								`dbus:"-"`
+	names map[string]string						`dbus:"-"`
+	ordered []string									`dbus:"-"`
+	timebased []*Resource							`dbus:"-"`
 }
 
 func NewObject(statuses chan Status) DbusObject {
@@ -50,19 +51,19 @@ func (o *DbusObject) AddTagName(tag, name string) {
 }
 
 func (o *DbusObject) AddFileResource(paths ...string) {
-	// file kind
-	for _, path := range paths {
+	for _, path := range paths { // file kind
 		rc := NewFileResource(path)
 		for _, tag := range rc.ordered {
 			o.AddTagName(tag, rc.Name)
 		}
 		o.Resources[rc.Name] = rc
+		o.timebased = append(o.timebased, rc)
 	}
 }
 
-func (o *DbusObject) UpdateTimeActivated(elapsed int) {
-	for _, rc := range o.Resources {
-		if rc.kind == "file" && elapsed % rc.Seconds == 0 {
+func (o *DbusObject) UpdateTimeBased(elapsed int) {
+	for _, rc := range o.timebased {
+		if elapsed % rc.Seconds == 0 {
 			rc.FileUpdate(o.Channel)
 		}
 	}
@@ -81,11 +82,6 @@ func (o *DbusObject) AddSimpleResource(rc *Resource, updater StatusUpdater) {
 func (o *DbusObject) Close() {
 	// not implemented
 }
-
-// TODO: really get statuses
-// func (o DbusObject) GetStatuses() (map[string]*Resource, *dbus.Error) {
-//   return o.Resources, nil
-// }
 
 func (o DbusObject) GetStatuses() ([]*Status, *dbus.Error) {
 	var result []*Status
@@ -122,8 +118,6 @@ func (o DbusObject) GetTag(tag string) (Content, *dbus.Error) {
 	if name, found := o.names[tag]; found {
 		result = ((o.Resources[name]).Statuses[tag]).Content
 	}
-	// TODO: supress after debug
-	// fmt.Printf("debug: Tag %s: %+v\n", tag, result)
 	return result, nil
 }
 // DbusObject
@@ -286,8 +280,5 @@ func (s *Service) Run(debugFlag *bool) {
 	}
 	wg.Wait() // wait on the workers to finish
 }
-
-
-
 
 // vim: set ft=go fdm=indent ts=2 sw=2 tw=79 noet:
