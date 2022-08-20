@@ -25,6 +25,13 @@ import (
 	"io/ioutil"
 )
 
+// See the following discussions:
+//
+// - https://github.com/prometheus/node_exporter/issues/52
+// - https://github.com/prometheus/procfs/pull/2
+// - http://stackoverflow.com/questions/17410841/how-does-user-hz-solve-the-jiffy-scaling-issue
+const userHZ = 100
+
 var (
 	stProcStat string
 )
@@ -282,6 +289,11 @@ func (stat *ProcStat) String() string {
 		stat.EnvEnd,
 		stat.ExitCode,
 	)
+}
+
+// CPUTime returns the total CPU user and system time in seconds.
+func (stat *ProcStat) CPUTime() float64 {
+	return float64(stat.UTime + stat.STime) / userHZ
 }
 
 // vim: set ft=go fdm=indent ts=2 sw=2 tw=79 noet:

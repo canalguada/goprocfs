@@ -59,6 +59,10 @@ func (rc *Resource) SetDefaultLabel(tag string) {
 	}
 }
 
+func (rc *Resource) SetPath(path string) {
+	rc.path = path
+}
+
 func (rc *Resource) SetData(key string, value int) {
 	rc.data[key] = value
 }
@@ -272,6 +276,14 @@ var Handlers map[string]ScanHandler = map[string]ScanHandler{
 	},
 }
 
+func (rc *Resource) RefreshStatuses(output chan<- Status) {
+	for tag, value := range rc.changed {
+		s := rc.Statuses[tag]
+		s.SetValue(value)
+		output <- *s
+	}
+}
+
 func (rc *Resource) FileUpdate(output chan<- Status) (err error) {
 	f, e := os.Open(rc.path)
 	if e != nil {
@@ -283,11 +295,7 @@ func (rc *Resource) FileUpdate(output chan<- Status) (err error) {
 		scanner := bufio.NewScanner(f)
 		scanner.Split(bufio.ScanLines)
 		handler(scanner, rc)
-		for tag, value := range rc.changed {
-			s := rc.Statuses[tag]
-			s.Value = value
-			output <- *s
-		}
+		rc.RefreshStatuses(output)
 	}
 	return
 }
