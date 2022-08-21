@@ -64,7 +64,8 @@ func (o *DbusObject) AddFileResource(paths ...string) {
 func (o *DbusObject) UpdateTimeBased(elapsed int) {
 	for _, rc := range o.timebased {
 		if elapsed % rc.Seconds == 0 {
-			rc.FileUpdate(o.Channel)
+			rc.FileUpdate()
+			rc.RefreshStatuses(o.Channel)
 		}
 	}
 }

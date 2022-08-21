@@ -284,7 +284,7 @@ func (rc *Resource) RefreshStatuses(output chan<- Status) {
 	}
 }
 
-func (rc *Resource) FileUpdate(output chan<- Status) (err error) {
+func (rc *Resource) FileUpdate() (err error) {
 	f, e := os.Open(rc.path)
 	if e != nil {
 		err = e
@@ -295,7 +295,6 @@ func (rc *Resource) FileUpdate(output chan<- Status) (err error) {
 		scanner := bufio.NewScanner(f)
 		scanner.Split(bufio.ScanLines)
 		handler(scanner, rc)
-		rc.RefreshStatuses(output)
 	}
 	return
 }
