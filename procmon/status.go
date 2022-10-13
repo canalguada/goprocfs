@@ -6,7 +6,7 @@ import (
 
 type Status struct {
 	Content
-	Tag string
+	Tag    string
 	format string
 }
 

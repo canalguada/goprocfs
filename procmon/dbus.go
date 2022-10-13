@@ -2,9 +2,10 @@ package procmon
 
 import (
 	"fmt"
-	"strings"
 	"os"
+	"strings"
 	"sync"
+
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
 	"github.com/godbus/dbus/v5/prop"
@@ -22,6 +23,7 @@ type DbusStatus struct {
 func GetDbusStatus(s *Status) DbusStatus {
 	return DbusStatus{Label: s.Label, Text: s.Text()}
 }
+
 // DbusStatus end
 
 type StatusUpdater func(chanStatus chan Status, wg sync.WaitGroup)
@@ -29,11 +31,11 @@ type StatusUpdater func(chanStatus chan Status, wg sync.WaitGroup)
 // DbusObject
 type DbusObject struct {
 	Resources map[string]*Resource
-	Routines map[string]StatusUpdater	`dbus:"-"`
-	Channel chan Status								`dbus:"-"`
-	names map[string]string						`dbus:"-"`
-	ordered []string									`dbus:"-"`
-	timebased []*Resource							`dbus:"-"`
+	Routines  map[string]StatusUpdater `dbus:"-"`
+	Channel   chan Status              `dbus:"-"`
+	names     map[string]string        `dbus:"-"`
+	ordered   []string                 `dbus:"-"`
+	timebased []*Resource              `dbus:"-"`
 }
 
 func NewObject(statuses chan Status) DbusObject {
@@ -63,7 +65,7 @@ func (o *DbusObject) AddFileResource(paths ...string) {
 
 func (o *DbusObject) UpdateTimeBased(elapsed int) {
 	for _, rc := range o.timebased {
-		if elapsed % rc.Seconds == 0 {
+		if elapsed%rc.Seconds == 0 {
 			rc.FileUpdate()
 			rc.RefreshStatuses(o.Channel)
 		}
@@ -121,23 +123,23 @@ func (o DbusObject) GetTag(tag string) (Content, *dbus.Error) {
 	}
 	return result, nil
 }
+
 // DbusObject
 
-
 type Service struct {
-	Object DbusObject
-	Conn *dbus.Conn							`dbus:"-"`
-	busname string							`dbus:"-"`
-	iface string								`dbus:"-"`
-	path dbus.ObjectPath				`dbus:"-"`
+	Object  DbusObject
+	Conn    *dbus.Conn      `dbus:"-"`
+	busname string          `dbus:"-"`
+	iface   string          `dbus:"-"`
+	path    dbus.ObjectPath `dbus:"-"`
 }
 
 func NewService(statuses chan Status, busname, iface, path string) *Service {
 	s := &Service{
-		Object: NewObject(statuses),
-		busname: busname, // was `com.github.canalguada.gostatuses`
-		iface: iface, // was `com.github.canalguada.gostatuses`
-		path: dbus.ObjectPath(path), // was `/com/github/canalguada/gostatuses`
+		Object:  NewObject(statuses),
+		busname: busname,               // was `com.github.canalguada.gostatuses`
+		iface:   iface,                 // was `com.github.canalguada.gostatuses`
+		path:    dbus.ObjectPath(path), // was `/com/github/canalguada/gostatuses`
 	}
 	return s
 }
@@ -242,7 +244,6 @@ func (s *Service) Run(debugFlag *bool) {
 	// Using methods
 	// err = s.Conn.Export(introspect.Introspectable(s.getIntroSpec()), s.path,
 	//   "org.freedesktop.DBus.Introspectable")
-
 
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "export introspect failed: %v\n", err)

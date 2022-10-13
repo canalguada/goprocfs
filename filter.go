@@ -19,13 +19,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package goprocfs
 
 import (
-	"strings"
 	"os"
+	"strings"
 )
 
 type ProcFilter struct {
-	scope string
-	filter func(p *Proc, err error) bool
+	scope   string
+	filter  func(p *Proc, err error) bool
 	message string
 }
 

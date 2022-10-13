@@ -20,16 +20,17 @@ package goprocfs
 
 import (
 	"unsafe"
+
 	"golang.org/x/sys/unix"
 )
 
 type SchedulingPolicy struct {
-	Class map[int]string
-	NeedPriority []int
+	Class           map[int]string
+	NeedPriority    []int
 	NeedCredentials []int
-	Low int
-	High int
-	None int
+	Low             int
+	High            int
+	None            int
 }
 
 var IO SchedulingPolicy = SchedulingPolicy{
@@ -39,11 +40,11 @@ var IO SchedulingPolicy = SchedulingPolicy{
 		2: "best-effort",
 		3: "idle",
 	},
-	NeedPriority: []int{1, 2},
+	NeedPriority:    []int{1, 2},
 	NeedCredentials: []int{1},
-	Low: 7,
-	High: 0,
-	None: 4,
+	Low:             7,
+	High:            0,
+	None:            4,
 }
 
 const (
@@ -105,11 +106,11 @@ var CPU SchedulingPolicy = SchedulingPolicy{
 		5: "SCHED_IDLE",
 		6: "SCHED_DEADLINE",
 	},
-	NeedPriority: []int{1, 2},
+	NeedPriority:    []int{1, 2},
 	NeedCredentials: []int{1, 2},
-	Low: 1,
-	High: 99,
-	None: 0,
+	Low:             1,
+	High:            99,
+	None:            0,
 }
 
 type Sched_Param struct {

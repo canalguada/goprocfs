@@ -19,17 +19,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package goprocfs
 
 import (
-	"fmt"
 	"encoding/json"
-	"strconv"
-	"strings"
-	"sort"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
-	"io/ioutil"
-	"sync"
 	"runtime"
+	"sort"
+	"strconv"
+	"strings"
+	"sync"
+
 	"golang.org/x/sys/unix"
 )
 
@@ -76,12 +77,12 @@ func GetOomScoreAdj(pid int) (score int, err error) {
 
 type Proc struct {
 	ProcStat
-	Uid int						`json:"uid"`
-	owner user.User	`json:"-"`
-	Cgroup [3]string	`json:"cgroup"`
-	OomScoreAdj int		`json:"oom_score_adj"`
-	IOPrioClass int		`json:"ioprio_class"`
-	IOPrioData int		`json:"ionice"`
+	Uid         int       `json:"uid"`
+	owner       user.User `json:"-"`
+	Cgroup      [3]string `json:"cgroup"`
+	OomScoreAdj int       `json:"oom_score_adj"`
+	IOPrioClass int       `json:"ioprio_class"`
+	IOPrioData  int       `json:"ionice"`
 }
 
 func (p *Proc) setUser() (err error) {
@@ -96,7 +97,7 @@ func (p *Proc) setCgroup() (err error) {
 	if cgroup, err := GetCgroup(p.Pid); err == nil {
 		if cgroup != "0::/" {
 			parts := strings.Split(cgroup, `/`)
-			p.Cgroup = [3]string{cgroup, parts[1], parts[len(parts) - 1]}
+			p.Cgroup = [3]string{cgroup, parts[1], parts[len(parts)-1]}
 		} else {
 			p.Cgroup = [3]string{"0::/", ``, ``}
 		}
@@ -126,7 +127,7 @@ func (p *Proc) setters() []setter {
 
 func NewProc(pid int) *Proc {
 	p := &Proc{ProcStat: ProcStat{Pid: pid}}
-	if err:= p.ProcStat.Read(pid); err != nil {
+	if err := p.ProcStat.Read(pid); err != nil {
 		panic(err)
 	}
 	for _, function := range p.setters() {
@@ -277,7 +278,7 @@ func Stat(stat string) (result string) {
 	return
 }
 
-type Formatter func (p *Proc) string
+type Formatter func(p *Proc) string
 
 func GetFormatter(format string) Formatter {
 	switch strings.ToLower(format) {
@@ -294,8 +295,9 @@ func GetFormatter(format string) Formatter {
 
 // ProcByPid implements sort.Interface for []*Proc based on Pid field
 type ProcByPid []*Proc
-func (s ProcByPid) Len() int { return len(s) }
-func (s ProcByPid) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+
+func (s ProcByPid) Len() int           { return len(s) }
+func (s ProcByPid) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s ProcByPid) Less(i, j int) bool { return s[i].Pid < s[j].Pid }
 
 // FilteredProcs returns a slice of Proc for filtered processes.
@@ -310,7 +312,7 @@ func FilteredProcs(filter Filterer) (result []*Proc) {
 	var wg sync.WaitGroup
 	for i := 0; i < count; i++ {
 		wg.Add(1)
-		go func(){
+		go func() {
 			defer wg.Done()
 			var p *Proc
 			var err error

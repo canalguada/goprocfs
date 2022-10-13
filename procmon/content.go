@@ -1,10 +1,10 @@
 package procmon
 
 type Content struct {
-	Label string
-	Value interface{}
+	Label    string
+	Value    interface{}
 	MainUnit string
-	Units []Unit
+	Units    []Unit
 }
 
 func (c *Content) AddUnit(u Unit) {
